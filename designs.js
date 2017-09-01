@@ -5,19 +5,16 @@
  */
 
 
-
 /// Wrapped it into an IIFE to protect namespacing.
-
-/// Assigning the jQuery object to `$` variable.
-(function($){
+(function(document){
     'use strict';
 
     /// Cache selectors here to avoid redundant DOM lookups.
     const elements = {
-        colorPicker: $('#colorPicker'),
-        gridCanvas: $('#pixel_canvas'),
-        widthInput: $('#input_width'),
-        heightInput: $('#input_height')
+        colorPicker: document.getElementById('colorPicker'),
+        gridCanvas: document.getElementById('pixel_canvas'),
+        widthInput: document.getElementById('input_width'),
+        heightInput: document.getElementById('input_height')
     };
 
     /**
@@ -28,10 +25,10 @@
     const init = function() {
 
         // Build the grid event listener.
-        $('#sizePicker').on('submit', makeGrid);
+        document.getElementById('sizePicker').addEventListener('submit', makeGrid, false);
 
         // Set the grid's color listener.
-        elements.gridCanvas.on('click', 'td', setGridColor);
+        elements.gridCanvas.addEventListener('click', setGridColor);
     };
 
     /*=================
@@ -50,25 +47,22 @@
         /// which would cause a web page refresh.
         event.preventDefault();
 
+        /// Broke out into a separate function as it's a different task.
         const gridSize = getGridSize();
 
+        /// Clear the HTML to reset the canvas.
         clearCanvas();
 
-        /// Builds up each row's HTML into a string and then appends it into the canvas.
+        /// Build up each row.
         for (let row = 0; row < gridSize.numberOfRows; row++) {
-            let rowHTML = '<tr>';
+            let tr = elements.gridCanvas.insertRow(row);
 
-            // For this row, build the columns HTML.
+            // For this row, insert each td.
             for (let col = 0; col < gridSize.numberOfColumns; col++) {
-                rowHTML += '<td></td>';
+                /// As I'm not inserting anything into the td, we don't need a variable.
+                tr.insertCell(col);
             }
-
-            rowHTML += '</td>';
-
-            // Append it to the canvas.
-            elements.gridCanvas.append(rowHTML);
         }
-
     }
 
 
@@ -77,8 +71,10 @@
      *
      * @function
      */
-    function setGridColor() {
-        $(this).css('background-color', getColor());
+    function setGridColor(event) {
+        let color = elements.colorPicker.value;
+
+        event.target.setAttribute('style', 'background-color: ' + color);
     }
 
     /*=================
@@ -92,24 +88,12 @@
 
 
     /**
-     * @description Gets the selected color.
-     *
-     * @function
-     *
-     * @returns {string} Returns the hex color
-     */
-    function getColor() {
-        return elements.colorPicker.val();
-    }
-
-
-    /**
      * @description Clear the grid canvas' HTML.
      *
      * @function
      */
     function clearCanvas() {
-        elements.gridCanvas.empty();
+        elements.gridCanvas.innerHTML = '';
     }
 
     /**
@@ -120,8 +104,8 @@
      * @returns {object} Returns an object
      */
     function getGridSize() {
-        let numberOfRows = elements.heightInput.val();
-        let numberOfColumns = elements.widthInput.val();
+        let numberOfRows = elements.heightInput.value;
+        let numberOfColumns = elements.widthInput.value;
 
         return {
             numberOfColumns: parseInt(numberOfColumns),
@@ -129,9 +113,6 @@
         }
     }
 
-    /// No need for document ready, as the script is loaded
-    /// into the footer of the web page.
     init();
 
-/// Assigning the jQuery object to `$` variable.
-}(jQuery));
+}(document));
